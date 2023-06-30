@@ -1,7 +1,6 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -25,16 +24,18 @@ func (server *Server) cmdHandler(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-
-	out, err := util.RunCommand(ctx, req.CommandName, req.Arguments)
+	out := ``
+	out, err = util.RunCommand(ctx, req.CommandName, req.Arguments)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") || strings.Contains(err.Error(), "not recognized") {
-			ctx.JSON(http.StatusNotFound, errorResponse(err))
+			ctx.JSON(http.StatusNotFound, gin.H{
+				"error":  "command not found",
+				"detail": err.Error(),
+			})
 			return
 		}
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
-	fmt.Println("result:", out)
 	ctx.JSON(http.StatusOK, CmdHandlerResponse{Result: out})
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/nehalshaquib/GoShellCommander/api"
+	"github.com/nehalshaquib/GoShellCommander/config"
 )
 
 func main() {
@@ -15,12 +16,18 @@ func main() {
 	// 	fmt.Println("my error: ", err)
 	// }
 	// fmt.Println("my res: ", out)
-	
-	fmt.Println("starting shellCommander server...")
-	server := api.NewServer()
-	err := server.Run()
+
+	err := config.Configure()
 	if err != nil {
-		fmt.Println("error in starting server: ", err)
+		fmt.Println("error in configuration ", err)
 	}
 
+	logger := config.Logger
+
+	logger.Infoln("starting shellCommander server...")
+	server := api.NewServer()
+	err = server.Run()
+	if err != nil {
+		logger.Errorln("error in starting server: ", err)
+	}
 }
