@@ -10,15 +10,12 @@ import (
 func main() {
 	err := config.Configure()
 	if err != nil {
-		log.Println("error in configuration ", err)
+		log.Println("error in configuration: ", err)
 	}
 
 	logger := config.Logger
 
-	logger.Infoln("starting shellCommander server...")
+	logger.Infoln("shellCommander server staring...")
 	server := api.NewServer()
-	err = server.Run()
-	if err != nil {
-		logger.Errorln("error in starting server: ", err)
-	}
+	server.Run()
 }
