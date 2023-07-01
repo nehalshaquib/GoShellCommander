@@ -22,7 +22,7 @@ func RunCommand(ctx context.Context, cmd string, args []string) (string, error) 
 
 	out, err := command.CombinedOutput()
 	if err != nil {
-		return "", errors.New(err.Error())
+		return "", errors.New(string(out) + err.Error())
 	}
 
 	log.Infoln("command output:", string(out))
