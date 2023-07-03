@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +21,8 @@ type Server struct {
 func NewServer() *Server {
 	log = config.Logger
 	server := &Server{}
+
+	gin.SetMode(config.GinMode)
 	router := gin.Default()
 
 	router.GET("/", func(ctx *gin.Context) {
@@ -27,6 +30,11 @@ func NewServer() *Server {
 	})
 
 	api := router.Group("api")
+	api.Use(authMiddleWare)
+
+	api.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, "This is an authorized api group")
+	})
 	api.POST("/cmd", server.cmdHandler)
 
 	server.router = router
@@ -38,7 +46,7 @@ func (server *Server) Run() {
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		err := server.router.Run("localhost:8085")
+		err := server.router.Run(config.Host + ":" + config.Port)
 		if err != nil {
 			log.Errorln("error in starting server: ", err)
 			signalChannel <- os.Interrupt
@@ -54,4 +62,26 @@ func (server *Server) Run() {
 
 func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
+}
+
+func authMiddleWare(ctx *gin.Context) {
+	token := ctx.GetHeader("token")
+	if token == "" {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("authorization key missing")))
+		ctx.Abort()
+		return
+	}
+	if isTokenValid(token) {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid authorization key")))
+		ctx.Abort()
+		return
+	}
+
+	ctx.Next()
+}
+
+func isTokenValid(token string) bool {
+	//TODO: Implement JWT token
+	_, ok := config.AuthorizedTokens[token]
+	return ok
 }

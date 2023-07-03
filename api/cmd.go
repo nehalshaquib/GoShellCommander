@@ -34,7 +34,7 @@ func (server *Server) cmdHandler(ctx *gin.Context) {
 			})
 			return
 		}
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 	ctx.JSON(http.StatusOK, CmdHandlerResponse{Result: out})
