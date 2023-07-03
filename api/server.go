@@ -67,12 +67,12 @@ func errorResponse(err error) gin.H {
 func authMiddleWare(ctx *gin.Context) {
 	token := ctx.GetHeader("token")
 	if token == "" {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("authorization key missing")))
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("authorization token missing")))
 		ctx.Abort()
 		return
 	}
-	if isTokenValid(token) {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid authorization key")))
+	if !isTokenValid(token) {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid authorization token")))
 		ctx.Abort()
 		return
 	}
