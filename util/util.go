@@ -15,10 +15,10 @@ var log *zap.SugaredLogger
 func RunCommand(ctx context.Context, cmd string, args []string) (string, error) {
 	log = config.Logger
 
-	log.Infoln("Running command on platform:", runtime.GOOS)
+	log.Infoln("current os:", runtime.GOOS)
 	command := exec.CommandContext(ctx, cmd, args...)
 
-	log.Infoln("command: ", command)
+	log.Infoln("running command: ", command)
 
 	out, err := command.CombinedOutput()
 	if err != nil {
