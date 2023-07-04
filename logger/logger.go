@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // InitLogger initializes a new logger instance and returns it.
@@ -31,7 +32,7 @@ func InitLogger() (*zap.SugaredLogger, error) {
 	}
 
 	// Create the log file path with the current timestamp
-	logPath := fmt.Sprintf("%s/%s.log", dir, currentTime.Format("2023-07-03_15-04-05"))
+	logPath := fmt.Sprintf("%s/%s.log", dir, currentTime.Format("D-2006-01-02_T-15-04-05"))
 
 	// Configure the logger
 	cfg := zap.Config{
@@ -48,6 +49,7 @@ func InitLogger() (*zap.SugaredLogger, error) {
 		Encoding:      "json",
 		EncoderConfig: zap.NewProductionEncoderConfig(),
 	}
+	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 
 	// Build the logger from the configuration
 	logger, err := cfg.Build()
