@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+  goshellcommander:
+    container_name: goshellcommander
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file: .env
+    environment:
+      - TOKENS=${TOKENS}
+      - HOST=${HOST}
+      - PORT=${PORT}
+      - GIN_MODE=${GIN_MODE}
+    ports:
+      - ${PORT}:${PORT}
+    volumes:
+      - ./logs:/logs
+    

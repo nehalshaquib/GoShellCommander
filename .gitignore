@@ -20,7 +20,8 @@
 # Go workspace file
 go.work
 
-# Log file
+# Log files
+/logs
 *.log
 
 # ENV files
