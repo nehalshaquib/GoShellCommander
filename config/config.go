@@ -8,13 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/nehalshaquib/GoShellCommander/logger"
+
 	"go.uber.org/zap"
 )
 
 var (
 	Logger           *zap.SugaredLogger
 	AuthorizedTokens map[string]bool
-	Host             string
 	Port             string
 	GinMode          string
 )
@@ -30,29 +30,17 @@ func Configure() error {
 	// Load env file
 	err = godotenv.Load(".env")
 	if err != nil {
-		log.Errorln("loading env: ", err)
-		return err
+		log.Warnln("loading env: ", err)
 	}
-
-	host := os.Getenv("HOST")
-	if host == "" {
-		Host = "localhost"
-		log.Warnln("HOST not provided, using default value: localhost")
-	}
-	Host = host
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		Port = "8085"
+		port = "8085"
 		log.Warnln("PORT not provided, using default value: 8085")
 	}
 	Port = port
 
 	ginMode := os.Getenv("GIN_MODE")
-	if ginMode == "" {
-		GinMode = gin.DebugMode
-		log.Warnln("GIN_MODE not provided, using default value: debug")
-	}
 	switch ginMode {
 	case "release":
 		GinMode = gin.ReleaseMode
