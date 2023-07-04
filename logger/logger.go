@@ -1,7 +1,10 @@
 package logger
 
 import (
-	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"time"
 
 	"go.uber.org/zap"
 )
@@ -9,21 +12,33 @@ import (
 var Logger *zap.SugaredLogger
 
 func InitLogger() (*zap.SugaredLogger, error) {
-	rawJSON := []byte(`{
-		"level": "debug",
-		"encoding": "json",
-		"outputPaths": ["stdout","./logs.log"],
-		"errorOutputPaths": ["stderr","./logs.log"],
-		"encoderConfig": {
-		  "messageKey": "message",
-		  "levelKey": "level",
-		  "levelEncoder": "lowercase"
-		}
-	  }`)
+	currentTime := time.Now()
+	dir := "./logs"
 
-	var cfg zap.Config
-	if err := json.Unmarshal(rawJSON, &cfg); err != nil {
-		return nil, err
+	// Create directory if it doesn't exist
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		err = os.Mkdir(dir, 0755)
+		if err != nil {
+			return nil, errors.New("failed to create directory:" + err.Error())
+		}
+	}
+
+	// Create log file with current timestamp
+	logPath := fmt.Sprintf("%s/%s.log", dir, currentTime.Format("2023-07-03_15-04-05"))
+
+	cfg := zap.Config{
+		OutputPaths: []string{
+			"stdout",
+			logPath,
+		},
+		Level:       zap.NewAtomicLevelAt(zap.InfoLevel),
+		Development: false,
+		Sampling: &zap.SamplingConfig{
+			Initial:    100,
+			Thereafter: 100,
+		},
+		Encoding:      "json",
+		EncoderConfig: zap.NewProductionEncoderConfig(),
 	}
 	logger, err := cfg.Build()
 	if err != nil {
