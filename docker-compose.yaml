@@ -8,7 +8,6 @@ services:
     env_file: .env
     environment:
       - TOKENS=${TOKENS}
-      - HOST=${HOST}
       - PORT=${PORT}
       - GIN_MODE=${GIN_MODE}
     ports:
