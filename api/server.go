@@ -1,11 +1,12 @@
 package api
 
 import (
-	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/nehalshaquib/GoShellCommander/config"
@@ -24,6 +25,7 @@ func NewServer() *Server {
 
 	gin.SetMode(config.GinMode)
 	router := gin.Default()
+	router.Use(GinZapMiddleware(log))
 
 	router.GET("/", func(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, "GoShellCommander is running.")
@@ -46,11 +48,13 @@ func (server *Server) Run() {
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		err := server.router.Run(config.Host + ":" + config.Port)
+		addr := "0.0.0.0:" + config.Port
+		err := server.router.Run(addr)
 		if err != nil {
 			log.Errorln("error in starting server: ", err)
 			signalChannel <- os.Interrupt
 		}
+		log.Infoln("goShellCommander running on: ", addr)
 	}()
 	log.Infoln("shellCommander server started")
 
@@ -64,24 +68,21 @@ func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
 
-func authMiddleWare(ctx *gin.Context) {
-	token := ctx.GetHeader("token")
-	if token == "" {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("authorization token missing")))
-		ctx.Abort()
-		return
-	}
-	if !isTokenValid(token) {
-		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid authorization token")))
-		ctx.Abort()
-		return
-	}
+func GinZapMiddleware(logger *zap.SugaredLogger) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		start := time.Now()
 
-	ctx.Next()
-}
+		// Process request
+		ctx.Next()
 
-func isTokenValid(token string) bool {
-	//TODO: Implement JWT token
-	_, ok := config.AuthorizedTokens[token]
-	return ok
+		// Log request details
+		logger.Infof("Incoming request: {path: %v}, {method: %v}, {ip: %v}, {user-agent: %v}, {status: %v}, {latency: %v}",
+			ctx.Request.URL.Path,
+			ctx.Request.Method,
+			ctx.ClientIP(),
+			ctx.Request.UserAgent(),
+			fmt.Sprintf("%d", ctx.Writer.Status()),
+			time.Since(start),
+		)
+	}
 }
