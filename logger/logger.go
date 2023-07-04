@@ -9,8 +9,15 @@ import (
 	"go.uber.org/zap"
 )
 
-var Logger *zap.SugaredLogger
-
+// InitLogger initializes a new logger instance and returns it.
+// It creates a new log file in the "./logs" directory with the current timestamp as its name.
+// If the "./logs" directory does not exist, it creates it.
+// The logger is configured to write both to the standard output and the log file.
+// It uses the "json" encoding and the production encoder.
+// The log level is set to "info", meaning that all "info", "warn", and "error" messages will be logged.
+// Debug messages will be ignored.
+// The logger uses a sampling strategy to keep the logging cost constant.
+// The initial number of messages to log is 100, and thereafter, every 100th message is logged.
 func InitLogger() (*zap.SugaredLogger, error) {
 	currentTime := time.Now()
 	dir := "./logs"
@@ -23,9 +30,10 @@ func InitLogger() (*zap.SugaredLogger, error) {
 		}
 	}
 
-	// Create log file with current timestamp
+	// Create the log file path with the current timestamp
 	logPath := fmt.Sprintf("%s/%s.log", dir, currentTime.Format("2023-07-03_15-04-05"))
 
+	// Configure the logger
 	cfg := zap.Config{
 		OutputPaths: []string{
 			"stdout",
@@ -40,11 +48,16 @@ func InitLogger() (*zap.SugaredLogger, error) {
 		Encoding:      "json",
 		EncoderConfig: zap.NewProductionEncoderConfig(),
 	}
+
+	// Build the logger from the configuration
 	logger, err := cfg.Build()
 	if err != nil {
 		return nil, err
 	}
+
+	// Ensure that all pending log entries are written
 	defer logger.Sync()
 
+	// Return the logger
 	return logger.Sugar(), nil
 }

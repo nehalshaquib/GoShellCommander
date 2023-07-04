@@ -12,13 +12,16 @@ import (
 	"go.uber.org/zap"
 )
 
+// Global variables that will be used throughout the application
 var (
-	Logger           *zap.SugaredLogger
-	AuthorizedTokens map[string]bool
-	Port             string
-	GinMode          string
+	Logger           *zap.SugaredLogger // Logger instance for logging
+	AuthorizedTokens map[string]bool    // Map to hold authorized tokens
+	Port             string             // Port on which the server will run
+	GinMode          string             // Mode in which Gin framework will run
 )
 
+// Configure function initializes the logger, loads environment variables from .env file,
+// sets the port and Gin mode, and populates the AuthorizedTokens map.
 func Configure() error {
 	// Initializing logger
 	log, err := logger.InitLogger()
@@ -27,12 +30,13 @@ func Configure() error {
 	}
 	Logger = log
 
-	// Load env file
+	// Load environment variables from .env file
 	err = godotenv.Load(".env")
 	if err != nil {
 		log.Warnln("loading env: ", err)
 	}
 
+	// Get the port from environment variables, if not provided, use 8085 as default
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8085"
@@ -40,6 +44,7 @@ func Configure() error {
 	}
 	Port = port
 
+	// Get the Gin mode from environment variables, if not provided, use debug as default
 	ginMode := os.Getenv("GIN_MODE")
 	switch ginMode {
 	case "release":
@@ -55,11 +60,13 @@ func Configure() error {
 		log.Errorf("Invalid value: %s provided for GIN_MODE. Valid values are: %s, %s, %s", ginMode, gin.ReleaseMode, gin.TestMode, gin.DebugMode)
 	}
 
+	// Get the authorized tokens from environment variables, if not provided, return an error
 	tokens := os.Getenv("TOKENS")
 	if tokens == "" {
 		return errors.New("TOKENS cannot be empty")
 	}
 
+	// Populate the AuthorizedTokens map
 	AuthorizedTokens = make(map[string]bool)
 	tokenList := strings.Split(tokens, ",")
 	for _, token := range tokenList {
