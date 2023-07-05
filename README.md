@@ -52,6 +52,8 @@ GoShellCommander is a Go REST API that allows you to execute shell commands and 
 
 **Description:** Execute a shell command and retrieve its output.
 
+**Header**: `token`: `<your_token_value>`
+
 **Request Body**
 ```json
 {
